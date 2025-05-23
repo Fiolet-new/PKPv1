@@ -1,0 +1,77 @@
+
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pociągi z Legionowa</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      color: #333;
+      text-align: center;
+      padding: 2rem;
+    }
+    .info {
+      font-size: 2rem;
+      margin: 1rem 0;
+    }
+    .status {
+      font-size: 2.5rem;
+      font-weight: bold;
+      padding: 1rem;
+      border-radius: 10px;
+      margin-top: 2rem;
+      display: inline-block;
+    }
+    .green {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .orange {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+    .red {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+  </style>
+</head>
+<body>
+  <h1>Odjazdy z Legionowa</h1>
+  <div id="nextTrain" class="info"></div>
+  <div id="secondTrain" class="info"></div>
+  <div id="statusMessage" class="status"></div>
+
+  <script>
+    const trains = [
+      { departureIn: 23, destination: "Warszawa Gdańska" },
+      { departureIn: 48, destination: "Warszawa Centralna" }
+    ];
+
+    const nextTrain = trains[0];
+    const secondTrain = trains[1];
+
+    document.getElementById("nextTrain").textContent =
+      `Najbliższy pociąg za: ${nextTrain.departureIn} minut do ${nextTrain.destination}`;
+
+    document.getElementById("secondTrain").textContent =
+      `Następny pociąg za: ${secondTrain.departureIn} minut do ${secondTrain.destination}`;
+
+    const statusEl = document.getElementById("statusMessage");
+
+    if (nextTrain.departureIn >= 25) {
+      statusEl.textContent = `Wyjdź w przeciągu ${nextTrain.departureIn - 20} minut`;
+      statusEl.classList.add("green");
+    } else if (nextTrain.departureIn >= 15) {
+      statusEl.textContent = `Pospiesz się – wyjdź w przeciągu ${nextTrain.departureIn - 20} minut`;
+      statusEl.classList.add("orange");
+    } else {
+      statusEl.textContent = `Poczekaj na kolejny pociąg`;
+      statusEl.classList.add("red");
+    }
+  </script>
+</body>
+</html>
