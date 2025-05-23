@@ -1,77 +1,132 @@
-
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pociągi z Legionowa</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      color: #333;
-      text-align: center;
-      padding: 2rem;
-    }
-    .info {
-      font-size: 2rem;
-      margin: 1rem 0;
-    }
-    .status {
-      font-size: 2.5rem;
-      font-weight: bold;
-      padding: 1rem;
-      border-radius: 10px;
-      margin-top: 2rem;
-      display: inline-block;
-    }
-    .green {
-      background-color: #d4edda;
-      color: #155724;
-    }
-    .orange {
-      background-color: #fff3cd;
-      color: #856404;
-    }
-    .red {
-      background-color: #f8d7da;
-      color: #721c24;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Najbliższe pociągi KM Legionowo</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 30px;
+    background: #f0f0f0;
+  }
+  .info {
+    font-size: 1.5em;
+    margin-bottom: 20px;
+  }
+  .status {
+    font-size: 1.8em;
+    font-weight: bold;
+    padding: 15px;
+    border-radius: 8px;
+    width: fit-content;
+    margin: 0 auto;
+  }
+  .green {
+    background-color: #b6e1a1;
+    color: #2e6204;
+  }
+  .orange {
+    background-color: #f9d57e;
+    color: #a05d00;
+  }
+  .red {
+    background-color: #f28b82;
+    color: #7a0500;
+  }
+</style>
 </head>
 <body>
-  <h1>Odjazdy z Legionowa</h1>
-  <div id="nextTrain" class="info"></div>
-  <div id="secondTrain" class="info"></div>
-  <div id="statusMessage" class="status"></div>
 
-  <script>
-    const trains = [
-      { departureIn: 23, destination: "Warszawa Gdańska" },
-      { departureIn: 48, destination: "Warszawa Centralna" }
-    ];
+<h1>Najbliższe pociągi KM z Legionowa</h1>
 
-    const nextTrain = trains[0];
-    const secondTrain = trains[1];
+<div class="info" id="nextTrain"></div>
+<div class="info" id="followingTrain"></div>
+<div class="status" id="statusMessage"></div>
 
-    document.getElementById("nextTrain").textContent =
-      `Najbliższy pociąg za: ${nextTrain.departureIn} minut do ${nextTrain.destination}`;
+<script>
+// Godziny odjazdu pociągów KM - format "HH:MM"
+const trainTimes = [
+  "04:35","05:10","05:14","05:38","05:44","06:07","06:14","06:38","06:44",
+  "07:07","07:14","07:38","07:44","08:07","08:14","08:38","08:44","09:07",
+  "09:14","09:38","09:44","10:07","10:14","10:38","10:44","11:07","11:14",
+  "11:38","11:44","12:07","12:14","12:38","12:44","13:07","13:14","13:38",
+  "13:44","14:07","14:14","14:38","14:44","15:07","15:14","15:38","15:44",
+  "16:07","16:14","16:38","16:44","17:07","17:14","17:38","17:44","18:07",
+  "18:14","18:38","18:44","19:07","19:14","19:38","19:44","20:07","20:14",
+  "20:38","20:44","21:07","21:14","21:38","21:44","22:07","22:14","22:38",
+  "22:44","23:07","23:14","23:38","23:44"
+];
 
-    document.getElementById("secondTrain").textContent =
-      `Następny pociąg za: ${secondTrain.departureIn} minut do ${secondTrain.destination}`;
+// Funkcja do konwersji "HH:MM" na minuty od północy
+function timeToMinutes(t) {
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+}
 
-    const statusEl = document.getElementById("statusMessage");
+// Funkcja do konwersji minut od północy na "HH:MM"
+function minutesToTime(m) {
+  const h = Math.floor(m / 60) % 24;
+  const min = m % 60;
+  return `${h.toString().padStart(2,"0")}:${min.toString().padStart(2,"0")}`;
+}
 
-    if (nextTrain.departureIn >= 25) {
-      statusEl.textContent = `Wyjdź w przeciągu ${nextTrain.departureIn - 20} minut`;
-      statusEl.classList.add("green");
-    } else if (nextTrain.departureIn >= 15) {
-      statusEl.textContent = `Pospiesz się – wyjdź w przeciągu ${nextTrain.departureIn - 20} minut`;
-      statusEl.classList.add("orange");
-    } else {
-      statusEl.textContent = `Poczekaj na kolejny pociąg`;
-      statusEl.classList.add("red");
-    }
-  </script>
+// Obliczamy najbliższy i kolejny pociąg względem aktualnego czasu
+function getNextTrains() {
+  const now = new Date();
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+  // Szukamy najbliższych odjazdów po czasie teraz
+  let nextIndex = trainTimes.findIndex(t => timeToMinutes(t) > nowMinutes);
+  if(nextIndex === -1) {
+    // jeśli nie ma już pociągów dziś, bierzemy pierwszy jutrzejszy
+    nextIndex = 0;
+  }
+  const nextTrain = trainTimes[nextIndex];
+  const followingTrain = trainTimes[(nextIndex + 1) % trainTimes.length];
+
+  // Obliczamy ile minut do odjazdu
+  let diffNext = timeToMinutes(nextTrain) - nowMinutes;
+  if(diffNext < 0) diffNext += 24 * 60;
+
+  let diffFollowing = timeToMinutes(followingTrain) - nowMinutes;
+  if(diffFollowing < 0) diffFollowing += 24 * 60;
+
+  return {
+    nextTrain,
+    diffNext,
+    followingTrain,
+    diffFollowing
+  };
+}
+
+// Aktualizacja wyświetlania na stronie
+function updateDisplay() {
+  const { nextTrain, diffNext, followingTrain, diffFollowing } = getNextTrains();
+
+  document.getElementById("nextTrain").textContent = `Najbliższy pociąg za: ${diffNext} min do Warszawy Gdańskiej`;
+  document.getElementById("followingTrain").textContent = `Następny pociąg za: ${diffFollowing} min do Warszawy Gdańskiej`;
+
+  const statusEl = document.getElementById("statusMessage");
+  if(diffNext > 20) {
+    statusEl.textContent = "Wyjdź w przeciągu 20 minut";
+    statusEl.className = "status green";
+  } else if(diffNext > 15) {
+    statusEl.textContent = "Wyjdź w przeciągu 10 minut";
+    statusEl.className = "status orange";
+  } else {
+    statusEl.textContent = "Poczekaj na kolejny pociąg";
+    statusEl.className = "status red";
+  }
+}
+
+// Odświeżamy co minutę
+updateDisplay();
+setInterval(updateDisplay, 60 * 1000);
+
+</script>
+
 </body>
 </html>
+ 
